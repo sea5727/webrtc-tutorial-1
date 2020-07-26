@@ -1,0 +1,84 @@
+<html>
+  <head>
+    <title>Main</title>
+    <link rel="stylesheet" type="text/css" href="css/style.css">
+  </head>
+  <body>
+    <!-- <video playsinline id="left_cam" controls preload="metadata" autoplay></video> -->
+    <video id="gum" playsinline autoplay muted></video>
+    <!-- <video id="recorded" playsinline loop></video> -->
+
+    <div>
+      <button id="webSocketOpen">webSocketOpen</button>
+      <button id="createRTCPeerConnection">createRTCPeerConnection</button>
+      <button id="createOffer">createOffer</button>
+      <button id="sendOffer">sendOffer</button>
+      <!-- <button id="start">Start camera</button>
+      <button id="record" disabled>Start Recording</button>
+      <button id="play" disabled>Play</button>
+      <button id="download" disabled>Download</button> -->
+    </div>
+
+
+    <script type="text/javascript">
+        const webSocketOpen = document.querySelector('button#webSocketOpen')
+        webSocketOpen.addEventListener('click', () => {
+          let ws = new WebSocket("wss://192.168.0.34:9002")
+          ws.onopen = (event) => {
+            console.log('on Open!!')
+          }
+          ws.onmessage = (event) => {
+            console.log('on message!!')
+          }
+        })
+        
+
+        let pc1 = null
+        const createRTCPeerConnection = document.querySelector('button#createRTCPeerConnection')
+        createRTCPeerConnection.addEventListener('click', () => {
+          console.log('create RTCPeerConnection start')
+          const config = {
+            'iceServers' : [{ urls : 'stun:stun.l.google.com:19302'
+            },
+            { urls : "turn:numb.viagenie.ca",
+            credential : "muazkh",
+            username : "webrtc@live.com"}
+          ]}
+          pc1 = new RTCPeerConnection(config)
+          pc1.onicecandidate = (event) => {
+            console.log('onicecandidate')
+          }
+          pc1.onaddstream = (event) => {
+            console.log('onaddstream')
+          }
+          pc1.onremovestream = (event) => {
+            console.log('onremovestream')
+          }
+        })
+
+        const createOffer = document.querySelector('button#createOffer')
+        createOffer.addEventListener('click', () => {
+          if(pc1 == null) {
+            alert('pc1 is null.. click create RTCPeerConnection')
+            return
+          }
+          pc1.createOffer({
+            offerToReceiveAudio : 1,
+            offerToReceiveVideo : 1,
+          })
+          .then((sdp) => {
+            console.log('create Offer success..')
+            console.log(sdp.sdp)
+          })
+          .catch((err) => {
+            alert('createOffer error.. : ' , err.name)
+          })
+        })
+
+        const sendOffer = document.querySelector('button#sendOffer')
+        sendOffer.addEventListener('click', () => {
+          pc1.send({"message": "test"})
+        })
+    </script>
+  </body>
+</html>
